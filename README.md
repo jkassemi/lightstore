@@ -39,15 +39,15 @@ func init(){
 
   store.DefineIndex(&Index{
     Name: "byName",
-    Fn: func(interface{}) interface{} {
-      return interface{}.(*MyRecord).Name
+    Fn: func(v interface{}) []interface{} {
+      return []interface{}{v.(*MyRecord).Name}
     },
   })
 
   store.DefineIndex(&Index{
     Name: "byValue",
-    Fn: func(interface{}) interface{} {
-      return interface{}.(*MyRecord).Value
+    Fn: func(v interface{}) []interface{} {
+      return []interface{}{v.(*MyRecord).Value}
     },
   })
 }

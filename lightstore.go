@@ -5,7 +5,7 @@ import (
 )
 
 type Index struct {
-  Fn     func(interface{}) interface{}
+  Fn     func(interface{}) []interface{}
   Name   string
   Unique bool
   data   map[interface{}][]interface{}
@@ -61,16 +61,18 @@ func (l *LightStore) AddRecord(r interface{}) {
       index.mu.Lock()
       defer index.mu.Unlock()
 
-      indexKey := index.Fn(r)
-
       if index.data == nil {
         index.data = make(map[interface{}][]interface{})
       }
 
-      if index.Unique == true || index.data[indexKey] == nil {
-        index.data[indexKey] = []interface{}{r}
-      } else {
-        index.data[indexKey] = append(index.data[indexKey], r)
+      indexKeys := index.Fn(r)
+
+      for _, indexKey := range indexKeys {
+        if index.Unique == true || index.data[indexKey] == nil {
+          index.data[indexKey] = []interface{}{r}
+        } else {
+          index.data[indexKey] = append(index.data[indexKey], r)
+        }
       }
 
       ch <- true
@@ -86,12 +88,14 @@ func (l *LightStore) RemoveRecord(r interface{}) {
   l.mu.Unlock()
 
   for _, index := range l.indexes {
-    indexKey := index.Fn(r)
+    indexKeys := index.Fn(r)
 
-    if index.data[indexKey] != nil {
-      index.mu.Lock()
-      index.data[indexKey] = rm(index.data[indexKey], r)
-      index.mu.Unlock()
+    for _, indexKey := range indexKeys {
+      if index.data[indexKey] != nil {
+        index.mu.Lock()
+        index.data[indexKey] = rm(index.data[indexKey], r)
+        index.mu.Unlock()
+      }
     }
   }
 }

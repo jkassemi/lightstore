@@ -5,22 +5,28 @@ import (
 )
 
 var indexQueryTests = []struct {
-  indexFn func(interface{}) interface{}
+  indexFn func(interface{}) []interface{}
   records []interface{}
   queries []interface{}
   results [][]interface{}
 }{
   {
-    indexFn: func(v interface{}) interface{} { return v },
+    indexFn: func(v interface{}) []interface{} { return []interface{}{v} },
     records: []interface{}{"hello", "world"},
     queries: []interface{}{"hello", "world"},
     results: [][]interface{}{[]interface{}{"hello"}, []interface{}{"world"}},
   },
   {
-    indexFn: func(v interface{}) interface{} { return "hello" },
+    indexFn: func(v interface{}) []interface{} { return []interface{}{"hello"} },
     records: []interface{}{"hello", "world"},
     queries: []interface{}{"hello"},
     results: [][]interface{}{[]interface{}{"hello", "world"}},
+  },
+  {
+    indexFn: func(v interface{}) []interface{} { return []interface{}{"hello", v} },
+    records: []interface{}{"r1", "r2"},
+    queries: []interface{}{"r1", "r2", "hello"},
+    results: [][]interface{}{[]interface{}{"r1"}, []interface{}{"r2"}, []interface{}{"r1", "r2"}},
   },
 }
 
