@@ -1,15 +1,21 @@
 package lightstore
 
+import (
+  "sync"
+)
+
 type Index struct {
   Fn     func(interface{}) interface{}
   Name   string
   Unique bool
   data   map[interface{}][]interface{}
+  mu     sync.Mutex
 }
 
 type LightStore struct {
   indexes map[string]*Index
   data    []interface{}
+  mu      sync.Mutex
 }
 
 func NewStore() *LightStore {
@@ -37,16 +43,24 @@ func rm(haystack []interface{}, needle interface{}) []interface{} {
 }
 
 func (l *LightStore) DefineIndex(indexDefinition *Index) {
+  l.mu.Lock()
+  defer l.mu.Unlock()
+
   l.indexes[indexDefinition.Name] = indexDefinition
 }
 
 func (l *LightStore) AddRecord(r interface{}) {
+  l.mu.Lock()
   l.data = append(l.data, r)
+  l.mu.Unlock()
 
   ch := make(chan bool, len(l.indexes))
 
   for _, index := range l.indexes {
     go func() {
+      index.mu.Lock()
+      defer index.mu.Unlock()
+
       indexKey := index.Fn(r)
 
       if index.data == nil {
@@ -67,13 +81,17 @@ func (l *LightStore) AddRecord(r interface{}) {
 }
 
 func (l *LightStore) RemoveRecord(r interface{}) {
+  l.mu.Lock()
   l.data = rm(l.data, r)
+  l.mu.Unlock()
 
   for _, index := range l.indexes {
     indexKey := index.Fn(r)
 
     if index.data[indexKey] != nil {
+      index.mu.Lock()
       index.data[indexKey] = rm(index.data[indexKey], r)
+      index.mu.Unlock()
     }
   }
 }

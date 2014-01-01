@@ -3,9 +3,6 @@
 Minimal native-hash indexing in-memory data storage. Define index functions and
 query this structure based on those indexes. 
 
-I haven't added any locking yet - I'll probably do that as soon as I start using
-this in production, but you shouldn't use this until that's in place.
-
 ## Installation
 
 ```bash
