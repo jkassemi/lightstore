@@ -57,6 +57,8 @@ func (l *LightStore) AddRecord(r interface{}) {
   ch := make(chan bool, len(l.indexes))
 
   for _, index := range l.indexes {
+    index := index
+
     go func() {
       index.mu.Lock()
       defer index.mu.Unlock()
@@ -108,4 +110,8 @@ func (l *LightStore) Query(indexName string, key interface{}) []interface{} {
   }
 
   return index.data[key]
+}
+
+func (l *LightStore) Data() []interface{} {
+  return l.data
 }

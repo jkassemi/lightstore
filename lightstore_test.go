@@ -66,3 +66,40 @@ func TestIndexQueries(t *testing.T) {
     }
   }
 }
+
+func TestMultiIndex(t *testing.T) {
+  ls := NewStore()
+
+  ls.DefineIndex(&Index{
+    Name: "idx1",
+    Fn: func(v interface{}) []interface{} {
+      if v.(string) == "r1" {
+        return []interface{}{v}
+      } else {
+        return []interface{}{}
+      }
+    },
+  })
+
+  ls.DefineIndex(&Index{
+    Name: "idx2",
+    Fn: func(v interface{}) []interface{} {
+      if v.(string) == "r2" {
+        return []interface{}{v}
+      } else {
+        return []interface{}{}
+      }
+    },
+  })
+
+  records := []interface{}{"r1", "r2"}
+
+  for _, r := range records {
+    ls.AddRecord(r)
+  }
+
+  if !comp(ls.Query("idx1", "r1"), []interface{}{"r1"}) ||
+    !comp(ls.Query("idx2", "r2"), []interface{}{"r2"}) {
+    t.Errorf("Unexpected output")
+  }
+}
